@@ -1,0 +1,162 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Quiz Interativo</title>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/bootstrap/5.3.0/css/bootstrap.min.css">
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            background-color: #f7f9fb;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            margin: 0;
+        }
+        .quiz-container {
+            background-color: #ffffff;
+            border-radius: 8px;
+            box-shadow: 0 4px 10px rgba(0, 0, 0, 0.1);
+            padding: 25px;
+            max-width: 600px;
+            text-align: center;
+        }
+        .question {
+            font-size: 1.3em;
+            margin-bottom: 20px;
+        }
+        .options button {
+            width: 100%;
+            margin: 5px 0;
+            font-size: 1.1em;
+        }
+        .result, .feedback {
+            margin-top: 20px;
+            font-size: 1.1em;
+        }
+        .feedback {
+            font-weight: bold;
+            color: #dc3545;
+        }
+        #restart {
+            margin-top: 20px;
+        }
+    </style>
+</head>
+<body>
+    <div class="quiz-container">
+        <h2>Quiz Interativo</h2>
+        <div id="name-entry">
+            <label for="username">Digite seu nome:</label>
+            <input type="text" id="username" class="form-control mb-3" placeholder="Nome" required>
+            <button class="btn btn-primary" onclick="startQuiz()">Começar Quiz</button>
+        </div>
+        <div id="question-container" style="display: none;">
+            <p class="question" id="question">Carregando pergunta...</p>
+            <div class="options" id="options"></div>
+        </div>
+        <div class="result" id="result"></div>
+        <div class="feedback" id="feedback"></div>
+        <button class="btn btn-primary" onclick="startQuiz()" id="restart" style="display: none;">Reiniciar Quiz</button>
+    </div>
+
+    <script>
+        const questions = [
+            { question: "Qual é a capital do Brasil?", options: ["Rio de Janeiro", "Brasília", "São Paulo", "Salvador"], answer: "Brasília" },
+            { question: "Qual é o maior planeta do sistema solar?", options: ["Terra", "Marte", "Júpiter", "Saturno"], answer: "Júpiter" },
+            { question: "Quantos continentes existem?", options: ["5", "6", "7", "8"], answer: "7" },
+            { question: "Qual é o país com maior população?", options: ["Índia", "Estados Unidos", "China", "Brasil"], answer: "China" },
+            { question: "Qual é o metal mais leve?", options: ["Alumínio", "Ferro", "Ouro", "Lítio"], answer: "Lítio" },
+            { question: "Qual animal é conhecido como o rei da selva?", options: ["Tigre", "Leão", "Elefante", "Guepardo"], answer: "Leão" },
+            { question: "Quantos dias tem um ano bissexto?", options: ["365", "366", "364", "367"], answer: "366" },
+            { question: "Quem pintou a Mona Lisa?", options: ["Michelangelo", "Leonardo da Vinci", "Van Gogh", "Picasso"], answer: "Leonardo da Vinci" },
+            { question: "Qual o maior oceano do mundo?", options: ["Atlântico", "Pacífico", "Índico", "Ártico"], answer: "Pacífico" },
+            { question: "Qual é o animal mais rápido?", options: ["Guepardo", "Leão", "Falcão-peregrino", "Cavalo"], answer: "Falcão-peregrino" }
+        ];
+
+        let currentQuestionIndex = 0;
+        let score = 0;
+        let incorrectAnswers = [];
+        let userName = "";
+
+        function startQuiz() {
+            const nameInput = document.getElementById("username");
+            if (nameInput && nameInput.value.trim() === "") {
+                alert("Por favor, digite seu nome antes de iniciar.");
+                return;
+            }
+            userName = nameInput ? nameInput.value.trim() : userName;
+
+            currentQuestionIndex = 0;
+            score = 0;
+            incorrectAnswers = [];
+            document.getElementById("name-entry").style.display = "none";
+            document.getElementById("restart").style.display = "none";
+            document.getElementById("result").textContent = "";
+            document.getElementById("feedback").textContent = "";
+            document.getElementById("question-container").style.display = "block";
+            loadQuestion();
+        }
+
+        function loadQuestion() {
+            const questionData = questions[currentQuestionIndex];
+            document.getElementById("question").textContent = questionData.question;
+            const optionsContainer = document.getElementById("options");
+            optionsContainer.innerHTML = "";
+
+            questionData.options.forEach(option => {
+                const button = document.createElement("button");
+                button.className = "btn btn-outline-primary";
+                button.textContent = option;
+                button.onclick = () => checkAnswer(option);
+                optionsContainer.appendChild(button);
+            });
+        }
+
+        function checkAnswer(selectedOption) {
+            const questionData = questions[currentQuestionIndex];
+
+            if (selectedOption === questionData.answer) {
+                score++;
+            } else {
+                incorrectAnswers.push({
+                    question: questionData.question,
+                    correctAnswer: questionData.answer,
+                    yourAnswer: selectedOption
+                });
+            }
+
+            currentQuestionIndex++;
+
+            if (currentQuestionIndex < questions.length) {
+                loadQuestion();
+            } else {
+                showResult();
+            }
+        }
+
+        function showResult() {
+            const percentage = ((score / questions.length) * 100).toFixed(2);
+            const result = document.getElementById("result");
+            result.innerHTML = `<strong>${userName}, você acertou ${score} de ${questions.length} perguntas (${percentage}%)!</strong>`;
+            const feedback = document.getElementById("feedback");
+            feedback.innerHTML = "";
+
+            if (incorrectAnswers.length > 0) {
+                feedback.innerHTML += "<h4>Respostas Incorretas:</h4><ul>";
+                incorrectAnswers.forEach(item => {
+                    feedback.innerHTML += `<li><strong>Pergunta:</strong> ${item.question} <br><strong>Resposta Correta:</strong> ${item.correctAnswer} <br><strong>Sua Resposta:</strong> ${item.yourAnswer}</li><br>`;
+                });
+                feedback.innerHTML += "</ul>";
+            } else {
+                feedback.textContent = "Parabéns! Você acertou todas as perguntas!";
+            }
+
+            document.getElementById("restart").style.display = "block";
+            document.getElementById("question-container").style.display = "none";
+        }
+    </script>
+</body>
+</html>
